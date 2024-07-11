@@ -1,0 +1,115 @@
+Sub Stock_Sheet()
+
+'Define headers
+Range("I1").Value = "Ticker"
+Range("j1").Value = "Quarterly Change"
+Range("k1").Value = "Percent Change"
+Range("l1").Value = "Total Stock Volume"
+Range("p1").Value = "Ticker"
+Range("q1").Value = "Value"
+
+'Define greatest columns
+Range("o2").Value = "Greatest % Increase"
+Range("o3").Value = "Greatest % Decrease"
+Range("o4").Value = "Greatest Total Volume"
+
+'Number formatting
+Range("G:G").NumberFormat = "0.00E+00"
+Range("K:K").NumberFormat = "0.00%"
+Range("Q2,Q3").NumberFormat = "0.00%"
+
+'Last Row setup
+Dim Lastrow As Long
+    
+Lastrow = Cells(Rows.Count, 1).End(xlUp).Row
+Dim ticker As String 'sets ticker variable
+
+Dim total As Integer 'sets total volume variable
+totalvol = 0
+
+Dim summary As Integer 'placeholder variable
+summary = 2
+
+Dim quarter As Double 'placeholder variable for quarterly calculation
+Dim quarterchange As Double 'quarterly change variable
+quarterchange = 0
+
+
+Dim percent As Double 'percent change variable for calculation
+
+Dim GreatTSV As Double 'Greatest total stock volume traded variable
+Dim GreatPercInc As Double  'Greatest percent increase variable
+Dim GreatPercDec As Double  'Greatest percent decrease variable
+
+
+For i = 2 To Lastrow
+    
+    Dim firstvalue As Boolean 'this code pulls the first cell for each opening price for each ticker
+    If firstvalue = False Then
+    Dim quarteropen As Double 'variable for the first value that the quarter opened with
+    quarteropen = Cells(i, 3).Value
+    firstvalue = True
+    End If
+    
+    
+    If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+    
+    ticker = Cells(i, 1).Value 'pulls ticker values
+    totalvol = totalvol + Cells(i, 7).Value 'total volume
+    quarter = Cells(i, 6).Value - quarteropen 'quarterly change value
+    quarterchange = quartchange + quarter
+    percent = (quarter / quarteropen)
+    
+    Range("J" & summary).Value = quarterchange
+    Range("I" & summary).Value = ticker
+    Range("L" & summary).Value = totalvol
+    Range("K" & summary).Value = percent
+    
+    summary = summary + 1
+    totalvol = 0
+    quarterchange = 0
+    firstvalue = False
+    
+    Else
+    
+    totalvol = totalvol + Cells(i, 7).Value
+    quarterchange = quartchange + quarter
+    percentchange = percentchange + percent
+    percent = 0
+    
+    End If
+Next i
+
+    GreatPercInc = WorksheetFunction.Max(Range("k2:k" & Lastrow))
+    Range("q2").Value = GreatPercInc
+    Range("p2").Formula = "=xlookup(q2,k:k,i:i)"
+
+    GreatPercDec = WorksheetFunction.Min(Range("k2:k" & Lastrow))
+    Range("q3").Value = GreatPercDec
+    Range("p3").Formula = "=xlookup(q3,k:k,i:i)"
+    
+    GreatTSV = WorksheetFunction.Max(Range("l2:l" & Lastrow))
+    Range("q4").Value = GreatTSV
+    Range("p4").Formula = "=xlookup(q4,l:l,i:i)"
+    
+    'Conditional formatting for appropriate cells
+    
+    Range("j2:k" & Lastrow).FormatConditions.Delete
+    With Range("j2:k" & Lastrow).FormatConditions.Add(Type:=xlCellValue, Operator:=xlGreater, Formula1:="0")
+        .Interior.ColorIndex = 4
+    End With
+    
+    With Range("j2:k" & Lastrow).FormatConditions.Add(Type:=xlCellValue, Operator:=xlLess, Formula1:="0")
+        .Interior.ColorIndex = 3
+    End With
+    
+    Range("q2:q3").FormatConditions.Delete
+    With Range("q2:q3").FormatConditions.Add(Type:=xlCellValue, Operator:=xlGreater, Formula1:="0")
+    .Interior.ColorIndex = 4
+    End With
+    
+    With Range("q2,q3").FormatConditions.Add(Type:=xlCellValue, Operator:=xlLess, Formula1:="0")
+    .Interior.ColorIndex = 3
+    End With
+    
+End Sub
